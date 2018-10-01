@@ -4,12 +4,11 @@
 ### 1. a)16,2 b)116,2 
 ### 2. For this table to store the result of Col*Col2 expresion, the data type for Col3 is DECIMAL(2.1)
 
-##Diagram: 
+## Diagram: 
 ![diagram](diagram.png)
 
 ## Querry code: 
 ```
-############################################################################################
 use universitatea
 
 create table grupe(
@@ -59,5 +58,4 @@ values
 
 select * from discipline
 
-############################################################################################
 ```
