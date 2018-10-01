@@ -8,7 +8,7 @@
 ![diagram](diagram.png)
 
 ## Querry code: 
-```
+```SQL
 use universitatea
 
 create table grupe(
