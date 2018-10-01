@@ -1,14 +1,14 @@
 # LAB3
 
-##Answers to the questions: 
-###1. a)16,2 b)116,2 
-###2. For this table to store the result of Col*Col2 expresion, the data type for Col3 is DECIMAL(2.1)
+## Answers to the questions: 
+### 1. a)16,2 b)116,2 
+### 2. For this table to store the result of Col*Col2 expresion, the data type for Col3 is DECIMAL(2.1)
 
 ##Diagram: 
 ![diagram](diagram.png)
 
-##Querry code: 
-'''
+## Querry code: 
+```
 ############################################################################################
 use universitatea
 
@@ -60,4 +60,4 @@ values
 select * from discipline
 
 ############################################################################################
-'''
+```
