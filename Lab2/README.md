@@ -1,4 +1,4 @@
-Title: "Crearea si intretinerea bazei de date"
+# LAB2: Crearea si intretinerea bazei de date
 
 Task1: 
 ![task1](https://user-images.githubusercontent.com/43127913/45666243-82efcf00-bb1d-11e8-8853-9422e922ec92.png)
