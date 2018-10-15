@@ -70,7 +70,7 @@ inner join discipline d on sr.Id_Disciplina = d.ID_Disciplina
 where sr.Tip_Evaluare = 'Testul 2' and sr.Data_Evaluare like '2018%'
 ```
 
-###Interogation 19
+### Interogation 19
 ```SQL
 --19 Gasiti numele si prenumele profesorilor, care au predat discipline, in care studentul "Cosovanu" a fost respins (nota<5) la cel putin o proba
 select p.Nume_Profesor, p.Prenume_Profesor
@@ -81,7 +81,7 @@ where s.Nume_Student = 'Cosovanu' and sr.Nota < 5
 ```
 ![interogation19](19.png)
 
-###Interogation 21
+### Interogation 21
 ```SQL
 --21 Cate note are fiecare student? Furniati numele si prenumele lor
 select s.Nume_Student, s.Prenume_Student, count(sr.Nota) as 'Nr de note'
@@ -92,7 +92,7 @@ order by s.Nume_Student
 ```
 ![interogation21](21.png)
 
-###Interogation 22
+### Interogation 22
 ```SQL
 --22 Sa se obtina numarul de discipline predate de fiecare profesor (Nume_Profesor, Prenume_Profesor)
 select p.Nume_Profesor, count (distinct sr.Id_Disciplina) as 'Nr de discipline'
@@ -103,7 +103,7 @@ order by p.Nume_Profesor
 ```
 ![interogation22](22.png)
 
-###Interogation 35
+### Interogation 35
 ```SQL
 --35 Gasiti denumirile disciplinelor ~i media notelor pe disciplina. Afi~ati numai disciplinele cu medii mai mari de 7.0.
 select d.Disciplina, avg(cast(sr.Nota as float)) as media
@@ -114,7 +114,7 @@ order by media
 ```
 ![interogation35](35.png)
 
-###Interogation 39
+### Interogation 39
 ```SQL
 --39 Gasiti denumirile disciplinelor la care nu au sustinut examenul, in medie, peste 5% de studenti.
 select distinct d.Disciplina
