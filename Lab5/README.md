@@ -26,32 +26,20 @@ declare @MARK1 int = 6;
 declare @MARK2 int = 8;
 declare @test char(50) = 'Testul 1' ;
 declare @disciplina char(50) = 'Baze de date';
+declare @count int = 1;
 
-if @MARK1 !=any (select top 10 sr.Nota
- from studenti s inner join studenti_reusita sr
-on	s.Id_Student=sr.Id_Student
-inner join discipline d
-on sr.Id_Disciplina=d.Id_Disciplina
-and d.Disciplina = @disciplina
-and sr.Tip_Evaluare=@test)
-
-or @MARK2 != any(select top 10 sr.Nota
- from studenti s inner join studenti_reusita sr
-on	s.Id_Student=sr.Id_Student
-inner join discipline d
-on sr.Id_Disciplina=d.Id_Disciplina
-and d.Disciplina = @disciplina
-and sr.Tip_Evaluare=@test)
-
-
+while @count = 1
 begin
-select  distinct top 10  s.Nume_Student,s.Prenume_Student,sr.Nota
+select distinct TOP 10 s.Nume_Student,s.Prenume_Student,sr.Nota
 from studenti s inner join studenti_reusita sr
 on	s.Id_Student=sr.Id_Student
 inner join discipline d
 on sr.Id_Disciplina=d.Id_Disciplina
 and d.Disciplina = @disciplina
 and sr.Tip_Evaluare=@test
+and sr.Nota != @MARK1
+and sr.Nota != @MARK2
+if @count = 1 break
 end
 ```
 ![querry2](querry2.png)
@@ -66,8 +54,8 @@ set @N3 = 60 * RAND();
 set @MAI_MARE = @N1;
 
 set @MAI_MARE = case 
-when @MAI_MARE<@N2 and @N2>@N3 then @N2
-when @MAI_MARE<@N3 and @N3>@N2 then @N3
+when @n2>@MAI_MARE and @N2>@N3 then @N2
+when @n3<@MAI_MARE and @N3>@N2 then @N3
 else @MAI_MARE
 end
 
@@ -91,10 +79,10 @@ if @N1 = @N2 and @N2 = @N3
     raiserror ('Numbers are equal', 1,1)
 else
 begin
-if @N1>@N2 set @MAI_MARE = @N1
-else set  @MAI_MARE = @N2;
+set @mai_mare = @n1;
+if @n2 > @mai_mare set @mai_mare = @n2;
+if @n3 > @mai_mare set @mai_mare = @n3;
 
-if  @MAI_MARE<@N3 set @MAI_MARE = @N3;
 print @N1;
 print @N2;
 print @N3;
