@@ -59,7 +59,7 @@ set Nota = Nota + 1
 where Tip_Evaluare = 'Examen'
       and Id_Student = any(select sef_grupa 
 	                       from grupe)
-	  and Nota != 10
+	  and Nota < 10
 ```
 ![querry1](task4.png)
 
@@ -206,7 +206,7 @@ create CLUSTERED INDEX [VX_Test]
 UPDATE studenti_reusita_test
 set Nota = Nota + 1
 where Id_Student = ANY (select Sef_grupa from grupe)
-and Nota != 10
+and Nota < 10
 
 select  Sef_grupa, Nota, Tip_Evaluare , Id_Disciplina
 from grupe	,	studenti_reusita_test
