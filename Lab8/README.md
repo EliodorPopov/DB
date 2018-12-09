@@ -2,7 +2,7 @@
 
 ### Task1: Sa se creeze doua viziuni in baza interogarilor formulate in doua exercitii indicate din capitolul Prima viziune sa fie construita in Editorul de interogari, iar a doua, utilizand View Designer.
 
-#### Editorul de interogari
+#### Editor
 ```SQL
 create view view1 as
 select distinct s_s.Nume_Student, s_s.Prenume_Student
@@ -15,7 +15,7 @@ select * from view1
 ```
 ![task1.1](task1.1.png)
 
-#### Editorul de interogari
+#### Designer
 
 ![task1.2](task1.2.png)
 
