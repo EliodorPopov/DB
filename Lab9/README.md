@@ -57,7 +57,6 @@ declare @output int
 exec proc2_20 @output output
 print 'numarul de studenti care au sustinut testul (Testul 2) la disciplina Baze de date in 2018: ' + cast(@output as VARCHAR(3))
 ```
-
 ![task2](task2.png)
 
 ## Task 3
@@ -95,25 +94,25 @@ create procedure procedure4
 
 as
 if(( select ds_ps.Id_Disciplina 
-     FROM ds_ps 
-	 WHERE Disciplina = @disciplina) IN (select distinct rs_s.Id_Disciplina 
+     from ds_ps 
+	 where Disciplina = @disciplina) in (select distinct rs_s.Id_Disciplina 
 	                                     from rs_s 
 										 where Id_Profesor = (select pf_cd.Id_Profesor 
 										                      from pf_cd 
-															  WHERE Nume_Profesor = @old_last_name 
-							                                  AND Prenume_Profesor = @old_first_name)))
+															  where Nume_Profesor = @old_last_name 
+							                                  and Prenume_Profesor = @old_first_name)))
 begin
 
 update rs_s
 set Id_Profesor = (select Id_Profesor
 		           from pf_cd
 		           where Nume_Profesor = @new_last_name
-	               AND Prenume_Profesor = @new_first_name)
+	               and Prenume_Profesor = @new_first_name)
 
 where Id_Profesor = (select Id_profesor
 		             from pf_cd
      		         where Nume_Profesor = @old_last_name
-	                 AND Prenume_Profesor = @old_first_name)
+	                 and Prenume_Profesor = @old_first_name)
 end
 else
 begin
@@ -192,7 +191,7 @@ select * from fun19 ('Cosovanu',5)
 ```SQL
 create function fun39 (@Percentage  float)
 returns table
-AS
+as
 return
 (
 select distinct d.Disciplina
@@ -208,3 +207,87 @@ select * from fun39 (0.05)
 ```
 ![task6.2](task6.2.png)
 
+## Task 7
+### Sa se scrie functia care ar calcula varsta studentului. Sa se defineasca urmatorul format al functiei: <nume_functie>(<Data_Nastere_Student>).
+
+```SQL
+create function fun7 (@data_nasterii date )
+  returns int
+  begin
+  declare @varsta int
+  select @varsta = (select (year(getdate()) - year(@data_nasterii) - case
+ 						when (month(@data_nasterii) > month(getdate())) 
+						or (month(@data_nasterii) = month(getdate()) 
+						and  day(@data_nasterii) > day(getdate()))
+						THEN  1
+						ELSE  0
+						END))
+ return @varsta
+ end
+ go
+
+ select dbo.fun7 ('1997-12-10') as Varsta
+```
+![task7](task7.png)
+
+## Task 8
+### Sa se creeze o functie definita de utilizator, care ar returna datele referitoare la reusita unui student. Se defineste urmatorul format al functiei : < nume_functie > (<Nume_Prenume_Student>). Sa fie afisat tabelul cu urmatoarele campuri: Nume_Prenume_Student, Disticplina, Nota, Data_Evaluare.
+
+```SQL
+create function fun8 (@st_nume_prenume VARCHAR(50))
+returns table
+as
+return
+(select concat(Nume_Student, ' ',Prenume_Student) as Student, Disciplina, Nota, Data_Evaluare
+ from s_s, ds_ps, rs_s
+ where s_s.Id_Student = rs_s.Id_Student
+ and ds_ps.Id_Disciplina = rs_s.Id_Disciplina 
+ and Nume_Student + ' ' + Prenume_Student = @st_nume_prenume )
+ go
+ select * from dbo.fun8 ('Gadalean Gabriela')
+
+```
+![task8](task8.png)
+
+## Task 9
+### Se cere realizarea unei functii definite de utilizator, care ar gasi cel mai sarguincios sau cel mai slab student dintr-o grupa. Se defineste urmatorul format al functiei: <nume_functie> (<Cod_Grupa>, <is_good>). Parametrul <is_good> poate accepta valorile "sarguincios" sau "slab", respectiv. Functia sa returneze un tabel cu urmatoarele campuri Grupa, Nume_Prenume_Student, Nota Medie , is_good. Nota Medie sa fie cu precizie de 2 zecimale.
+
+```SQL
+create function fun9 (@cod_grupa VARCHAR(10), @is_good VARCHAR(20))
+returns @Student Table (Cod_Grupa varchar(10), Student varchar (100), Media decimal(4,2), Reusita varchar(20))
+as
+begin
+		if @is_good = 'sarguincios'
+		begin
+			insert into @Student
+   				select top (1) Cod_Grupa, concat(Nume_Student,' ',Prenume_Student) as Student,
+		          				CAST(AVG( Nota * 1.0) as decimal (4,2)) as Media, @is_good
+   			from grupe,s_s, rs_s
+   			where grupe.Id_Grupa = rs_s.Id_Grupa
+   			AND s_s.Id_Student = rs_s.Id_Student
+   			AND Cod_Grupa = @cod_grupa
+   			group by Cod_Grupa, Nume_Student, Prenume_Student
+   			order by Media desc
+ 		end
+else
+ 	begin 
+ 		insert into @Student
+    		select top (1) Cod_Grupa, concat(Nume_Student,' ',Prenume_Student) as Student,
+		 		CAST(AVG( Nota * 1.0) as decimal (4,2)) as Media, @is_good
+    	from grupe,s_s, rs_s
+    	where grupe.Id_Grupa = rs_s.Id_Grupa
+    	AND s_s.Id_Student = rs_s.Id_Student
+    	AND Cod_Grupa = @cod_grupa
+    	group by Cod_Grupa, Nume_Student, Prenume_Student
+    	order by Media 
+ 	end
+RETURN 
+end
+
+go 
+select * from fun9 ('INF171','sarguincios')
+
+go 
+select * from fun9 ('INF171','slab')
+```
+![task9](task9.png)
