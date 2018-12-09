@@ -1,6 +1,6 @@
 # Lab 9 : Crearea procedurilor stocate si a functiilor definite de utilizator
 
-## Task1: 
+## Task 1
 ### Sa se creeze proceduri stocate in baza exercitiilor (2 exercitii) din capitolul 4. Parametrii de intrare trebuie sa corespunda criteriilor din clauzele WHERE ale exercitiilor respective.
 
 ```SQL
@@ -37,7 +37,8 @@ exec proc_39 @Percentage = 0.05
 ```
 ![task1.2](task1.2.png)
 
-### Task2: Sa se creeze o procedura stocata, care nu are niciun parametru de intrare si poseda un parametru de iesire. Parametrul de iesire trebuie sa returneze numarul de studenti, care nu au sustinut cel putin o forma de evaluare (nota mai mica de 5 sau valoare NULL).
+## Task 2 
+### Sa se creeze o procedura stocata, care nu are niciun parametru de intrare si poseda un parametru de iesire. Parametrul de iesire trebuie sa returneze numarul de studenti, care nu au sustinut cel putin o forma de evaluare (nota mai mica de 5 sau valoare NULL).
 
 
 ```SQL
@@ -59,7 +60,8 @@ print 'numarul de studenti care au sustinut testul (Testul 2) la disciplina Baze
 
 ![task2](task2.png)
 
-### Task3: Sa se creeze o procedura stocata, care ar insera in baza de date informatii despre un student nou. In calitate de parametri de intrare sa serveasca datele personale ale studentului nou si Cod_Grupa. Sa se genereze toate intrarile-cheie necesare in tabelul studenti_reusita. Notele de evaluare sa fie inserate ca NULL.
+## Task 3
+### Sa se creeze o procedura stocata, care ar insera in baza de date informatii despre un student nou. In calitate de parametri de intrare sa serveasca datele personale ale studentului nou si Cod_Grupa. Sa se genereze toate intrarile-cheie necesare in tabelul studenti_reusita. Notele de evaluare sa fie inserate ca NULL.
 
 ```SQL
 create procedure addStudent
@@ -80,7 +82,8 @@ exec addStudent 'Popov','Eliodor','1997-12-10','Mun. Chisinau, str. Independente
 ![task3](task3.png)
 
 
-### Task4: Fie ca un profesor se elibereaza din functie la mijlocul semestrului. Sa se creeze o procedura stocata care ar reatribui inregistrarile din tabelul studenti_reusita unui alt profesor. Parametri de intrare: numele si prenumele profesorului vechi, numele si prenumele profesorului nou, disciplina. in cazul in care datele inserate sunt incorecte sau incomplete, sa se afiseze un mesaj de avertizare.
+## Task 4
+### Fie ca un profesor se elibereaza din functie la mijlocul semestrului. Sa se creeze o procedura stocata care ar reatribui inregistrarile din tabelul studenti_reusita unui alt profesor. Parametri de intrare: numele si prenumele profesorului vechi, numele si prenumele profesorului nou, disciplina. in cazul in care datele inserate sunt incorecte sau incomplete, sa se afiseze un mesaj de avertizare.
 
 ```SQL
 create procedure procedure4
@@ -123,9 +126,10 @@ exec procedure4 'Mocanu','Diana','Nagy','Alexandru','Programarea aplicatiilor Wi
 ![task4.1](task4.1.png)
 
 #### SUCCESS
-![task4.2](task2.2.png)
+![task4.2](task4.2.png)
 
-### Task5: Sa se creeze o procedura stocata care ar forma o lista cu primii 3 cei mai buni studenti la o disciplina, si acestor studenti sa le fie marita nota la examenul final cu un punct (nota maximala posibila este 10). In calitate de parametru de intrare, va servi denumirea disciplinei. Procedura sa returneze urmatoarele campuri: Cod_Grupa, Nume_Prenume_Student, Disciplina, Nota_ Veche, Nota_Noua.
+## Task 5
+### Sa se creeze o procedura stocata care ar forma o lista cu primii 3 cei mai buni studenti la o disciplina, si acestor studenti sa le fie marita nota la examenul final cu un punct (nota maximala posibila este 10). In calitate de parametru de intrare, va servi denumirea disciplinei. Procedura sa returneze urmatoarele campuri: Cod_Grupa, Nume_Prenume_Student, Disciplina, Nota_ Veche, Nota_Noua.
 
 ```SQL
 create procedure procedure5
@@ -164,7 +168,8 @@ execute procedure5 @disciplina = 'Sisteme de calcul'
 ```
 ![task5](task5.png)
 
-### Task6: Sa se creeze functii definite de utilizator in baza exercitiilor (2 exercitii) din capitolul 4. Parametrii de intrare trebuie sa corespunda criteriilor din clauzele WHERE ale exercitiilor respective.
+## Task 6 
+### Sa se creeze functii definite de utilizator in baza exercitiilor (2 exercitii) din capitolul 4. Parametrii de intrare trebuie sa corespunda criteriilor din clauzele WHERE ale exercitiilor respective.
 
 ```SQL
 create function fun19 (@nume_student  VARCHAR(10), @reusita SMALLINT)
