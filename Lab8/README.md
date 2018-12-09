@@ -115,3 +115,44 @@ from ds_ps, interogarea39
 where ds_ps.Disciplina = interogarea39.Disciplina
 ```
 ![task5.2](task5.2.png)
+
+### Task6:
+
+#### 6.1: Se considera un graf orientat, si fie se doreste parcursa calea de la nodul id = 3 la nodul unde id = 0. Sa se faca reprezentarea grafului orientat in forma de expresie-tabel recursiv.
+
+```SQL
+                       [4]
+                        |
+                        v
+  [5] -> [0] <- [1] <- [2]
+                        ^
+                        |
+                       [3]
+```
+
+#### 6.2: Sa se observe instructiunea de dupa UNION ALL a membrului recursiv, precum si partea de pana la UNION ALL reprezentata de membrul-ancora.
+
+```SQL
+create table task6 (
+		number1 int primary key,
+		number2 int);
+
+insert into task6 
+values
+(5,0), (4,2), (3,2), (1,0), (2,1), (0, null);
+
+select * from task6;
+
+with task6CTE AS (
+		select number1 , number2 from task6
+		where number1 = 3 and number2 = 2
+		
+		union all
+		
+		select task6.number1, task6.number2 from task6
+		inner join task6CTE
+		on task6.number1 = task6CTE.number2	
+)
+SELECT * from task6CTE
+```
+![task6](task6.png)
