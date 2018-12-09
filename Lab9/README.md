@@ -1,6 +1,7 @@
 # Lab 9 : Crearea procedurilor stocate si a functiilor definite de utilizator
 
-### Task1: Sa se creeze proceduri stocate in baza exercitiilor (2 exercitii) din capitolul 4. Parametrii de intrare trebuie sa corespunda criteriilor din clauzele WHERE ale exercitiilor respective.
+## Task1: 
+### Sa se creeze proceduri stocate in baza exercitiilor (2 exercitii) din capitolul 4. Parametrii de intrare trebuie sa corespunda criteriilor din clauzele WHERE ale exercitiilor respective.
 
 ```SQL
 --Afisati numarul de studenti care au sustinut testul (Testul 2) la disciplina Baze de date in 2018
