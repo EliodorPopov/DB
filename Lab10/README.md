@@ -1,204 +1,162 @@
-# Lab 9 : Crearea procedurilor stocate si a functiilor definite de utilizator
+# Lab 10 : Crearea si utilizarea declansatoarelor
 
-### Task1: Sa se creeze proceduri stocate in baza exercitiilor (2 exercitii) din capitolul 4. Parametrii de intrare trebuie sa corespunda criteriilor din clauzele WHERE ale exercitiilor respective.
-
-```SQL
---Afisati numarul de studenti care au sustinut testul (Testul 2) la disciplina Baze de date in 2018
-create procedure proc_20
-@Tip_Evaluare varchar(50)
-
-as
-select count(Distinct s.Nume_Student)
-from rs_s sr
-inner join s_s s on sr.Id_Student = s.ID_Student
-inner join ds_ps d on sr.Id_Disciplina = d.ID_Disciplina
-where sr.Tip_Evaluare = @Tip_Evaluare and sr.Data_Evaluare like '2018%'
-
-exec proc_20 @Tip_Evaluare = 'Testul 2'
-```
-![task1.1](task1.1.png)
+## Task 1
+### Sa se modifice declansatorul inregistrare_noua,in asa fel,incat in cazul actualizarii auditoriului sa apara mesajul de informare, care, in afara de disciplina si ora, va afisa codul grupei afectate, ziua, blocul, auditoriul vechi si auditoriul nou.
 
 ```SQL
---39 Gasiti denumirile disciplinelor la care nu au sustinut examenul, in medie, peste 5% de studenti.
-create procedure proc_39 
-@Percentage float
+create trigger inregistrare_noua on plan_studii.orarul
+after update
+as set nocount on
+if update(Auditoriu)
+select 'Lectia la disciplina ' + upper(ds_ps.Disciplina)+ ', a grupei ' + grupe.Cod_Grupa +
+		', ziua de ' + cast(inserted.Zi as VARCHAR(5)) + ', de la ora ' + cast(inserted.Ora as varchar(5))
+		+ ', a fost transferata in aula ' + cast(inserted.Auditoriu as varchar(5)) + ', Blocul '+
+		cast(inserted.Bloc as varchar(5)) + '. Auditoriul vechi: ' + cast(deleted.Auditoriu as varchar(5))+
+		', Auditoriul nou: ' + cast(inserted.Auditoriu as varchar(5))
+from inserted,deleted, ds_ps, grupe
+where deleted.Id_Disciplina = ds_ps.Id_Disciplina
+and inserted.Id_Grupa = grupe.Id_Grupa
+go
 
-as
-select distinct d.Disciplina
-from rs_s sr
-inner join ds_ps d on sr.Id_Disciplina = d.Id_Disciplina
-inner join s_s s on sr.Id_Student = s.ID_Student
-where sr.Tip_Evaluare = 'Examen'
-group by d.Disciplina 
-having  cast(count ( case when sr.Nota<5 then sr.Nota else null end) as float) / count(s.Nume_Student) < @Percentage
-
-exec proc_39 @Percentage = 0.05
+update plan_studii.orarul set Auditoriu=510 where Auditoriu = 501
 ```
-![task1.2](task1.2.png)
+![task1](task1.png)
 
-### Task2: Sa se creeze o procedura stocata, care nu are niciun parametru de intrare si poseda un parametru de iesire. Parametrul de iesire trebuie sa returneze numarul de studenti, care nu au sustinut cel putin o forma de evaluare (nota mai mica de 5 sau valoare NULL).
-
+## Task 2
+### Sa se creeze declansatorul, care ar asigura popularea corecta (consecutiva) a tabelelor studenti si studenti_reusita,si ar permite evitarea erorilor la nivelul cheilor externe.
 
 ```SQL
+create trigger declan_2 on studenti_reusita_test
+instead of INSERT
+	as set nocount on
+	insert into rs_s 
+	select * from inserted
+	where Id_Student in (select Id_Student from s_s)
+ 	go
 
-create procedure proc2_20
-@Nr int = null output
-
-as
-select @Nr = count(Distinct s.Nume_Student)
-from rs_s sr
-inner join s_s s on sr.Id_Student = s.ID_Student
-inner join ds_ps d on sr.Id_Disciplina = d.ID_Disciplina
-where sr.Tip_Evaluare = 'Examen' and sr.Data_Evaluare like '2018%';
-
-declare @output int
-exec proc2_20 @output output
-print 'numarul de studenti care au sustinut testul (Testul 2) la disciplina Baze de date in 2018: ' + cast(@output as VARCHAR(3))
+insert into studenti_reusita_test values ((select max(Id_Student) from s_s), 103, 104, 1, 'Examen', null, null)
+select * from s_s where Id_Student= (select max(Id_Student) from s_s)
+select * from rs_s where Id_Student = (select max(Id_Student) from s_s)
 ```
-
 ![task2](task2.png)
 
-### Task3: Sa se creeze o procedura stocata, care ar insera in baza de date informatii despre un student nou. In calitate de parametri de intrare sa serveasca datele personale ale studentului nou si Cod_Grupa. Sa se genereze toate intrarile-cheie necesare in tabelul studenti_reusita. Notele de evaluare sa fie inserate ca NULL.
+## Task 3
+### Sa se creeze un declansator, care ar interzice micsorarea notelor in tabelul studenti_reusita si modificarea valorilor campului Data_Evaluare, unde valorile acestui camp sunt nenule. Declansatorul trebuie sa se lanseze, numai daca sunt afectate datele studentilor din grupa, "CIB 171". Se va afisa un mesaj de avertizare in cazul tentativei de a incalca constrangerea.
 
 ```SQL
-create procedure addStudent
-@nume varchar(60),
-@prenume varchar(60),
-@data date,
-@adresa varchar(100),
-@codGrupa char(10)
+create trigger declan_3 on studenti_reusita_test
+after update
 as
-insert into s_s
-values ((select max(Id_Student)from s_s) +1, @nume, @prenume, @data, @adresa);
-insert into rs_s
-values ((select max(Id_Student)from rs_s), 108, 101 , 
-         (select Id_Grupa from grupe where Cod_Grupa = @codGrupa), 'Examen', NULL, '2018-11-25')
-
-exec addStudent 'Popov','Eliodor','1997-12-10','Mun. Chisinau, str. Independentei','FAF171'
+set nocount on
+if update (Nota)
+declare @ID_GRUPA int = (select Id_Grupa  
+                         from grupe 
+						 where Cod_Grupa = 'CIB171')
+declare @count int = (select count(*) 
+                      from deleted , inserted 
+			          where deleted.Id_Disciplina = inserted.Id_Disciplina 
+					  and deleted.Id_Grupa = inserted.Id_Grupa 
+			          and deleted.Id_Profesor = inserted.Id_Profesor 
+					  and deleted.Tip_Evaluare = inserted.Tip_Evaluare 
+			          and deleted.Id_Student = inserted.Id_Student
+			          and inserted.Nota < deleted.Nota 
+			          and inserted.Id_Grupa = @ID_GRUPA)	
+begin
+if (@count > 0 )
+print ('Nu se perminte micsorarea notelor pentru grupa CIB 171')
+rollback transaction
+end
+if update(Data_evaluare)
+		set @count = (SELECT count(*) 
+		from deleted 
+		where Data_Evaluare is not null and Id_Grupa = @ID_GRUPA)
+		if @count > 0
+		begin
+			print ('Nu se permite modificarea campului Tip_Evaluare')
+			rollback transaction
+		end
+go
 ```
 ![task3](task3.png)
 
 
-### Task4: Fie ca un profesor se elibereaza din functie la mijlocul semestrului. Sa se creeze o procedura stocata care ar reatribui inregistrarile din tabelul studenti_reusita unui alt profesor. Parametri de intrare: numele si prenumele profesorului vechi, numele si prenumele profesorului nou, disciplina. in cazul in care datele inserate sunt incorecte sau incomplete, sa se afiseze un mesaj de avertizare.
+## Task 4
+### Sa se creeze un declansator DDL care ar interzice modificarea coloanei ld_Disciplina in tabelele bazei de date universitatea cu afisarea mesajului respectiv.
 
 ```SQL
-create procedure procedure4
-@old_last_name VARCHAR(50),
-@old_first_name VARCHAR(50),
-@new_last_name VARCHAR(50),
-@new_first_name VARCHAR(50),
-@disciplina VARCHAR(50)
-
-as
-if(( select ds_ps.Id_Disciplina 
-     FROM ds_ps 
-	 WHERE Disciplina = @disciplina) IN (select distinct rs_s.Id_Disciplina 
-	                                     from rs_s 
-										 where Id_Profesor = (select pf_cd.Id_Profesor 
-										                      from pf_cd 
-															  WHERE Nume_Profesor = @old_last_name 
-							                                  AND Prenume_Profesor = @old_first_name)))
-begin
-
-update rs_s
-set Id_Profesor = (select Id_Profesor
-		           from pf_cd
-		           where Nume_Profesor = @new_last_name
-	               AND Prenume_Profesor = @new_first_name)
-
-where Id_Profesor = (select Id_profesor
-		             from pf_cd
-     		         where Nume_Profesor = @old_last_name
-	                 AND Prenume_Profesor = @old_first_name)
-end
-else
-begin
-  print 'ERROR! Check input!!!'
+create trigger declan_4 on database
+for Alter_Table
+as 
+set nocount on
+declare @nume_disciplina varchar(50)
+select @nume_disciplina=eventdata().value('(/EVENT_INSTANCE/AlterTableActionList/*/Columns/Name)[1]', 'nvarchar(100)') 
+if @nume_disciplina='Disciplina'
+begin 
+print ('Nu poate fi modificata coloana Id_Disciplina')
+rollback;
 end
 
-exec procedure4 'Mocanu','Diana','Nagy','Alexandru','Programarea aplicatiilor Windows'
+alter table plan_studii.discipline alter column Id_Disciplina varchar(200)
 ```
-#### ERROR
-![task4.1](task4.1.png)
+![task4](task4.png)
 
-#### SUCCESS
-![task4.2](task2.2.png)
-
-### Task5: Sa se creeze o procedura stocata care ar forma o lista cu primii 3 cei mai buni studenti la o disciplina, si acestor studenti sa le fie marita nota la examenul final cu un punct (nota maximala posibila este 10). In calitate de parametru de intrare, va servi denumirea disciplinei. Procedura sa returneze urmatoarele campuri: Cod_Grupa, Nume_Prenume_Student, Disciplina, Nota_ Veche, Nota_Noua.
+## Task 5
+### Sa se creeze un declansator DDL care ar interzice modificarea schemei bazei de date in afara orelor de lucru.
 
 ```SQL
-create procedure procedure5
-@disciplina VARCHAR(50)
-
+create trigger declan_5
+on database
+for ALTER_TABLE
 as
-declare @studenti_lista table (Id_Student int, Media float)
-insert into @studenti_lista
-	select top (3) rs_s.Id_Student, AVG(cast (Nota as float)) as Media
-    from rs_s, ds_ps
-	where ds_ps.Id_Disciplina = rs_s.Id_Disciplina
-	and Disciplina = @disciplina
-	group by rs_s.Id_Student
-	order by Media desc;
+set nocount on
+declare @CurrentTime time
+declare @StartDay time
+declare @EndDay time
+select @CurrentTime = convert(Time, getdate())
+select @StartDay = '10:00:00'
+select @EndDay = '19:30:00'
 
-select cod_grupa, s_s.Id_Student, CONCAT(nume_student, ' ', Prenume_Student) as Nume, Disciplina, nota AS Nota_Veche, iif(nota > 9, 10, nota + 1) AS Nota_Noua 
-    from rs_s, ds_ps, grupe, s_s
-	where ds_ps.id_disciplina = rs_s.id_disciplina
-	and grupe.Id_Grupa = rs_s.Id_Grupa
-	and  s_s.Id_Student = rs_s.Id_Student
-	and s_s.Id_Student in (select Id_Student from @studenti_lista)
-	and Disciplina = @disciplina
-	and Tip_Evaluare = 'Examen';
-declare @id_discipl smallint = (select Id_Disciplina  
-                                from ds_ps
-                                where Disciplina = @disciplina);
-
-update rs_s
-set rs_s.Nota = (CASE WHEN nota >= 9 THEN 10 ELSE nota + 1 END)
-where Tip_Evaluare = 'Examen'
-and Id_Disciplina = @id_discipl
-and Id_Student in (select Id_Student from @studenti_lista)
+if (@CurrentTime < @StartDay) or (@CurrentTime > @EndDay)
+begin	
+print 'The database cannot be modified outside working hours. Current time: ' + cast(@CurrentTime as varchar(20))
+rollback
+end
 go
-
-execute procedure5 @disciplina = 'Sisteme de calcul'
 ```
 ![task5](task5.png)
 
-### Task6: Sa se creeze functii definite de utilizator in baza exercitiilor (2 exercitii) din capitolul 4. Parametrii de intrare trebuie sa corespunda criteriilor din clauzele WHERE ale exercitiilor respective.
+## Task 6
+### Sa se creeze un declansator DDL care, la modificarea proprietatilor coloanei ld_Profesor dintr-un tabel, ar face schimbari asemanatoare in mod automat in restul tabelelor.
 
 ```SQL
-create function fun19 (@nume_student  VARCHAR(10), @reusita SMALLINT)
-returns table
+create trigger declan_6
+on database
+for ALTER_TABLE
 as
-return
-(
-select distinct Nume_Profesor,Prenume_Profesor
-from rs_s sr
-inner join pf_cd p on sr.Id_Profesor = p.Id_Profesor
-inner join s_s s on sr.Id_Student = s.Id_Student
-where s.Nume_Student = @nume_student 
-  and sr.Nota < @reusita
-)
+set nocount on
+declare @input varchar(500)
+declare @id_profesor varchar (20)
+declare @table varchar (50)
+declare @new_input varchar(500)
 
-select * from fun19 ('Cosovanu',5)
+select @id_profesor = eventdata().value('(/EVENT_INSTANCE/AlterTableActionList/*/Columns/Name)[1]', 'nvarchar(max)')
+if @id_profesor = 'Id_Profesor'
+begin
+select @input = eventdata().value ('(/EVENT_INSTANCE/TSQLCommand/CommandText)[1]', 'nvarchar(max)')
+select @table = eventdata().value ('(/EVENT_INSTANCE/ObjectName)[1]','nvarchar(max)')
+
+select @new_input = REPLACE(@id_profesor, @table, 'profesori');
+execute (@new_input)
+
+select @new_input = REPLACE(@id_profesor, @table, 'studenti_reusita1');
+execute (@new_input)
+
+select @new_input = REPLACE(@id_profesor, @table, 'orarul');
+execute (@new_input)
+
+print 'Datele au fost modificate cu succes'
+end
 ```
-![task6.1](task6.1.png)
+![task6](task6.png)
 
-```SQL
-create function fun39 (@Percentage  float)
-returns table
-AS
-return
-(
-select distinct d.Disciplina
-from rs_s sr
-inner join ds_ps d on sr.Id_Disciplina = d.Id_Disciplina
-inner join s_s s on sr.Id_Student = s.ID_Student
-where sr.Tip_Evaluare = 'Examen'
-group by d.Disciplina 
-having  cast(count ( case when sr.Nota<5 then sr.Nota else null end) as float) / count(s.Nume_Student) < @Percentage
-)
-
-select * from fun39 (0.05)
-```
-![task6.2](task6.2.png)
 
